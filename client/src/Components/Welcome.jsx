@@ -2,28 +2,38 @@ import React from "react";
 import {AiFillPlayCircle} from "react-icons/ai";
 import {SiEthereum} from "react-icons/si";
 import {BsInfoCircle} from "react-icons/bs";
+import {Formik, Form, Field} from "formik";
+import * as Yup from "yup";
 
+import {TransactionContext} from "../Containers/TransactionsContext";
 import {Loader} from "./";
 
 const commonStyles =
   "min-h-[70px] sm:px-0 px-2 sm:min-w-[120px] flex justify-center items-center border-[0.5px] border-gray-400 text-white";
 
 const Input = ({placeholder, name, type, value, handleChange}) => (
-  <input
+  <Field
     placeholder={placeholder}
     type={type}
     onChange={(e) => handleChange(e, name)}
     name={name}
     value={value}
     step="0.0001"
-    className=" bg-[#3d4f7c] my-2 w-full rounded-sm p-2 outline-none bg-transparent text-sm text-white border-none white-glassmorphosim"
+    className=" bg-[#2952e3] my-2 w-full rounded-sm p-2 outline-none text-sm text-white border-none white-glassmorphosim"
   />
 );
+
+const SignupSchema = Yup.object().shape({
+  addressTo: Yup.string().required("Recepient address is required"),
+  amount: Yup.string().required("Amount to send is required"),
+  keyword: Yup.string().required("Keyword address is required"),
+  message: Yup.string().required("Message address is required"),
+});
+
 const Welcome = () => {
-  const [isLoading, setLoading] = React.useState(false);
-  const connectWallet = () => {};
-  const handleChange = () => {};
-  const handleSubmit = () => {};
+  const {connectWallet, currentAccount, sendingAmount, sendTransactions} =
+    React.useContext(TransactionContext);
+
   return (
     <div className="flex w-full justify-center items-center">
       <div className="flex md:flex-row flex-col items-start justify-between md:p-20 py-12 px-4">
@@ -34,13 +44,17 @@ const Welcome = () => {
           <p className="text-left mt-5 text-white font-light md:w-9/12 w-11/12">
             Explore crypto world, buy and sell cryptocurrencies easily on crypto
           </p>
-          <button
-            type="button"
-            onClick={connectWallet}
-            className="flex flex-row  justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
-          >
-            <p className="text-white text-base font-semibold">Connect Wallet</p>
-          </button>
+          {!currentAccount && (
+            <button
+              type="button"
+              onClick={connectWallet}
+              className="flex flex-row  justify-center items-center my-5 bg-[#2952e3] p-3 rounded-full cursor-pointer hover:bg-[#2546bd]"
+            >
+              <p className="text-white text-base font-semibold">
+                Connect Wallet
+              </p>
+            </button>
+          )}
           <div className=" grid sm:grid-cols-3 grid-cols-2 w-full mt-10">
             <div className={`rounded-tl-2xl ${commonStyles}`}>Reliability</div>
             <div className={`${commonStyles}`}>Security</div>
@@ -67,44 +81,83 @@ const Welcome = () => {
               </div>
             </div>
           </div>
-          <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
-            <Input
-              placeholder="Address To"
-              name="addressTo"
-              type="text"
-              handleChange={handleChange}
-            />
-            <Input
-              placeholder="Amount (ETH)"
-              name="amount"
-              type="number"
-              handleChange={handleChange}
-            />
-            <Input
-              placeholder="Keyword (Gif)"
-              name="keyword"
-              type="text"
-              handleChange={handleChange}
-            />
-            <Input
-              placeholder="Enter message"
-              name="message"
-              type="text"
-              handleChange={handleChange}
-            />
-            <div className="h-[1px w-full bg-gray-400 my-2]" />
-            {isLoading ? (
-              <Loader />
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer hover:bg-[#3d4f7c]"
-              >
-                Send Now
-              </button>
+          <Formik
+            initialValues={{
+              addressTo: "",
+              amount: "",
+              keyword: "",
+              message: "",
+            }}
+            validationSchema={SignupSchema}
+            onSubmit={(values) => {
+              sendTransactions(values);
+            }}
+          >
+            {({errors, touched, handleChange, handleSubmit}) => (
+              <Form>
+                <div className="p-5 sm:w-96 w-full flex flex-col justify-start items-center blue-glassmorphism">
+                  <Input
+                    placeholder="Address To"
+                    name="addressTo"
+                    type="text"
+                    handleChange={handleChange}
+                  />
+                  {errors.addressTo && touched.addressTo ? (
+                    <div className="text-red-500 font-semibold text-sm mt-1">
+                      {errors.addressTo}
+                    </div>
+                  ) : null}
+                  <Input
+                    placeholder="Amount (ETH)"
+                    name="amount"
+                    type="number"
+                    handleChange={handleChange}
+                  />
+                  {errors.amount && touched.amount ? (
+                    <div className="text-red-500 font-semibold text-sm mt-1">
+                      {errors.amount}
+                    </div>
+                  ) : null}
+                  <Input
+                    placeholder="Keyword (Gif)"
+                    name="keyword"
+                    type="text"
+                    handleChange={handleChange}
+                  />
+                  {errors.keyword && touched.keyword ? (
+                    <div className="text-red-500 font-semibold text-sm mt-1">
+                      {errors.keyword}
+                    </div>
+                  ) : null}
+
+                  <Input
+                    placeholder="Enter message"
+                    name="message"
+                    type="text"
+                    handleChange={handleChange}
+                  />
+                  {errors.message && touched.message ? (
+                    <div className="text-red-500 font-semibold text-sm mt-1">
+                      {errors.message}
+                    </div>
+                  ) : null}
+
+                  <div className="h-[1px w-full bg-gray-400 my-2]" />
+                  {sendingAmount ? (
+                    <Loader />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      className="text-white w-full mt-2 border-[1px] p-2 border-[#3d4f7c] rounded-full cursor-pointer hover:bg-[#3d4f7c]"
+                    >
+                      Send Now
+                    </button>
+                  )}
+                </div>
+              </Form>
             )}
-          </div>
+          </Formik>
         </div>
       </div>
     </div>
