@@ -72,7 +72,8 @@ const TransactionCard = ({
   );
 };
 const Transactions = () => {
-  const {currentAccount} = React.useContext(TransactionContext);
+  const {currentAccount, allTransactions} =
+    React.useContext(TransactionContext);
   return (
     <div className="flex w-full justify-center items-center 2xl:px-20 gradient-bg-transactions">
       <div className="flex flex-col md:p-12 py-12 px-4">
@@ -84,8 +85,8 @@ const Transactions = () => {
         )}
 
         <div className="flex flex-wrap justify-center items-center mt-10">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            .map((transaction) => (
+          {allTransactions
+            ?.map((transaction) => (
               <TransactionCard key={Math.random()} {...transaction} />
             ))
             .reverse()}
